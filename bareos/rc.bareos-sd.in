@@ -1,0 +1,64 @@
+#! /bin/sh
+#
+# bareos       This shell script takes care of starting and stopping
+#	       the bareos Storage daemon.
+#
+# chkconfig: 2345 90 99
+# description: Backup Archiving REcovery Open Sourced.
+#
+#
+
+# Source function library
+. /etc/rc.d/functions.bareos
+
+PIDDIR=/var/run/bareos/
+PRGNAM=bareos-sd
+
+case "$1" in
+    start)
+	[ -x ${BACSDBIN}/bareos-sd ] && {
+	    sleep 2
+	    echo -n "Starting the Storage daemon: "
+	    OPTIONS=''
+	    if [ "${SD_USER}" != '' ]; then
+	       OPTIONS="${OPTIONS} -u ${SD_USER}"
+	    fi
+
+	    if [ "${SD_GROUP}" != '' ]; then
+	       OPTIONS="${OPTIONS} -g ${SD_GROUP}"
+	    fi
+
+	    if [ -r ${PIDDIR}${PRGNAM}.pid ]; then
+	        if $(! /sbin/pidof $PRGNAM > /dev/null 2>&1 ) ; then
+	            echo "Removing an old ${PIDDIR}${PRGNAM}.pid"
+	            rm -f ${PIDDIR}${PRGNAM}.pid
+	        fi
+	    fi
+
+	    mkdir -p ${PIDDIR}
+
+	    ${BACSDBIN}/${PRGNAM} $2 ${OPTIONS} -v -p ${PIDDIR}${PRGNAM}.pid
+	    echo Done.
+	}
+	;;
+    stop)
+	[ -x ${BACSDBIN}/bareos-sd ] && {
+	    echo -n "Stopping the Storage daemon: "
+	    killproc ${BACSDBIN}/bareos-sd ${SD_PORT}
+	    echo Done.
+	}
+	;;
+    restart)
+	$0 stop
+	sleep 5
+	$0 start
+	;;
+    status)
+	[ -x ${BACSDBIN}/bareos-sd ] && status ${BACSDBIN}/bareos-sd ${SD_PORT}
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart|status}"
+	exit 1
+	;;
+esac
+exit 0

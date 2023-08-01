@@ -1,0 +1,239 @@
+#!/bin/sh
+
+# Slackware build script for bareos, test version
+# Created by Maris-S based on Henry Jensen's script for bareos 15.2.3/Slackware 14.2
+# Copyright 2016 Henry Jensen Germany
+# based on Slackware build script for bacula
+# Copyright 2010, 2012, 2013  Mario Preksavec, Zagreb, HR
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+cd $(dirname $0) ; CWD=$(pwd)
+
+PRGNAM=bareos
+VERSION=${VERSION:-22.1.0}
+BUILD=${BUILD:-1}
+TAG=${TAG:-_SBo}
+
+# Since Version >= 21.0.0 the way to set up a pid file is to do it as an option
+# to the Director/SD/FD binary with the -p <file> option, where <file> is the
+# path to a pidfile of your choosing. By default, no pidfile is created.
+# https://docs.bareos.org/Configuration/Director.html#config-Dir_Director_PidDirectory
+# https://docs.bareos.org/Configuration/StorageDaemon.html#config-Sd_Storage_PidDirectory
+# https://docs.bareos.org/Configuration/FileDaemon.html#config-Fd_Client_PidDirectory
+PIDCHANGEVERSION=21.0.0
+if [ "$(printf '%s\n' "$PIDCHANGEVERSION" "$VERSION" | sort -V | head -n1)" = "$PIDCHANGEVERSION" ]; then 
+    PIDDEFINE=""
+else
+    PIDDEFINE="-Dpiddir=/var/run/bareos"
+fi
+
+# Get source
+if [ ! -f "$VERSION.tar.gz" ]; then
+  wget https://github.com/bareos/bareos/archive/refs/tags/Release/$VERSION.tar.gz
+fi
+
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i586 ;;
+    arm*) ARCH=arm ;;
+       *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+TMP=${TMP:-/tmp/SBo}
+PKG=$TMP/package-$PRGNAM
+OUTPUT=${OUTPUT:-/tmp}
+
+if [ "$ARCH" = "i586" ]; then
+  SLKCFLAGS="-O2 -march=i586 -mtune=i686"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX=""
+fi
+
+set -e
+
+# User might want a portable install
+# WARNING! /opt location setup is not tested, not even sure it works with latest bareos
+OPT_PREFIX=${OPT_PREFIX:-no}
+case "$OPT_PREFIX" in
+  no) PREFIX=/usr
+      LIBDIR=$PREFIX/lib${LIBDIRSUFFIX}
+      SYSCONFDIR=/etc
+      LOCALSTATEDIR=/var
+      BINDIR=$PREFIX/bin
+      SBINDIR=$PREFIX/sbin
+      VARIABLEDATA=$LOCALSTATEDIR/bareos
+   ;;
+   *) PREFIX=/opt/bareos
+      LIBDIR=$PREFIX/lib
+      SYSCONFDIR=$PREFIX/etc
+      LOCALSTATEDIR=$PREFIX/var
+      BINDIR=$PREFIX/bin
+      SBINDIR=$PREFIX/bin
+      VARIABLEDATA=$PREFIX
+   ;;
+esac
+
+# Bail if user or group isn't valid on your system
+if ! grep ^bareos: /etc/passwd 2>&1 > /dev/null; then
+
+cat << EOF
+
+  You must have a bareos user to run this script
+
+  # groupadd -g 328 bareos
+  # useradd -u 328 -d /dev/null -s /bin/false -g bareos bareos
+
+EOF
+
+  exit 1
+elif ! grep ^bareos: /etc/group 2>&1 > /dev/null; then
+
+cat << EOF
+
+  You must have a bareos group to run this script
+
+  # groupadd -g 328 bareos
+
+EOF
+
+  exit 1
+fi
+
+rm -rf $PKG
+mkdir -p $TMP $PKG $OUTPUT
+cd $TMP
+rm -rf $PRGNAM-Release-$VERSION
+tar xvf $CWD/$PRGNAM-Release-$VERSION.tar.gz || tar xvf $CWD/$VERSION.tar.gz
+cp $CWD/CMakeLists.txt $TMP/$PRGNAM-Release-$VERSION/core/platforms/slackware
+if [ "$PIDDEFINE" = "" ]; then
+    cp $CWD/rc.bareos-dir.in $TMP/$PRGNAM-Release-$VERSION/core/platforms/slackware
+    cp $CWD/rc.bareos-fd.in $TMP/$PRGNAM-Release-$VERSION/core/platforms/slackware
+    cp $CWD/rc.bareos-sd.in $TMP/$PRGNAM-Release-$VERSION/core/platforms/slackware
+fi
+cd $PRGNAM-Release-$VERSION
+chown -R root:root .
+find -L . \
+ \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+  -o -perm 511 \) -exec chmod 755 {} \; -o \
+ \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+# Disable droplet
+# sed -i 's/\(add\_subdirectory(src\/droplet)\)/#DONOTCOMPILE \1/' $TMP/$PRGNAM-Release-$VERSION/core/CMakeLists.txt
+
+mkdir -p build
+cd build
+  cmake \
+    -DCMAKE_C_FLAGS:STRING="$SLKCFLAGS -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-return-type" \
+    -DCMAKE_CXX_FLAGS:STRING="$SLKCFLAGS -Wno-unused-parameter" \
+    -DCMAKE_INSTALL_PREFIX=$PREFIX \
+    -DCMAKE_INSTALL_LIBDIR=$LIBDIR \
+    -Dsbindir=$SBINDIR \
+    -Dbindir=$BINDIR \
+    -Dlibdir=$LIBDIR \
+    -Dsysconfdir=$SYSCONFDIR \
+    -Dconfdir=/etc/bareos \
+    -Darchivedir=/var/lib/bareos/storage \
+    -Dbackenddir=/usr/lib/bareos/backends \
+    -Dconfigtemplatedir=/usr/lib/bareos/defaultconfigs \
+    -Dscriptdir=/usr/lib/bareos/scripts \
+    -Dplugindir=/usr/lib/bareos/plugins \
+    -Dworkingdir=/var/lib/bareos \
+    $PIDDEFINE \
+    -Dbsrdir=/var/lib/bareos \
+    -Dlogdir=/var/log/bareos \
+    -Dsubsysdir=/var/lock \
+    -Dwebuiconfdir=/etc/bareos-webui \
+    -Dbatch-insert=yes \
+    -Ddynamic-cats-backends=yes \
+    -Ddynamic-storage-backends=yes \
+    -Dscsi-crypto=yes \
+    -Dlmdb=yes \
+    -Dndmp=yes \
+    -Dacl=yes \
+    -Dpostgresql=yes \
+    -Dopenssl=yes \
+    -Ddir-user=bareos \
+    -Ddir-group=bareos \
+    -Dsd-user=bareos \
+    -Dsd-group=bareos \
+    -Dfd-user=root \
+    -Dfd-group=root \
+    -DENABLE_PYTHON2=no \
+    -Dsystemd=no \
+    -Dtraymonitor=yes \
+    -Ddb_password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1` \
+    -Ddir-password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1` \
+    -Dfd-password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1` \
+    -Dsd-password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1` \
+    -Dmon-dir-password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1` \
+    -Dmon-fd-password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1` \
+    -Dmon-sd-password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1` \
+    -Dbasename="bareos" \
+    -Dhostname="localhost" \
+    -DDEBUG_PREFIX_MAP:BOOL=OFF \
+    -DCMAKE_BUILD_TYPE=Release ..
+  cmake --build .
+  DESTDIR=$PKG cmake --install . --strip
+cd ..
+
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+# Move apache conf file to /etc/httpd/extras and remove /etc/httpd/conf.d from package
+mkdir -p $PKG/$SYSCONFDIR/httpd/extra/
+mv $PKG/$SYSCONFDIR/httpd/conf.d/bareos-webui.conf $PKG/$SYSCONFDIR/httpd/extra/bareos-webui.conf.new
+rm -d $PKG/$SYSCONFDIR/httpd/conf.d
+
+# Append .new to config files
+for i in $(find $PKG/$SYSCONFDIR/bareos -name '*.conf') ; do mv $i $i.new ; done
+for i in $(find $PKG/$SYSCONFDIR/bareos-webui -name '*.ini') ; do mv $i $i.new ; done
+
+# Append .new to /etc/rc.d/* files
+for i in $(find $PKG/$SYSCONFDIR/rc.d -type f \( -name '*' ! -name '.*' \)) ; do mv $i $i.new ; done
+
+# Append .new to logrotate file
+mv $PKG/$SYSCONFDIR/logrotate.d/bareos-dir $PKG/$SYSCONFDIR/logrotate.d/bareos-dir.new
+
+# Fix some permissions
+# chown -R bareos:bareos $PKG/etc/bareos $PKG/usr/sbin/* $PKG/var/log/bareos \
+#   $PKG/var/lib/bareos $PKG/usr/lib/bareos/{plugins,scripts}
+chown -R bareos:bareos $PKG/etc/bareos $PKG/var/log/bareos $PKG/var/lib/bareos
+
+mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+cp -a AUTHORS README.* $PKG/usr/doc/$PRGNAM-$VERSION
+cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
+
+mkdir -p $PKG/install
+cat $CWD/slack-desc > $PKG/install/slack-desc
+cat $CWD/doinst.sh > $PKG/install/doinst.sh
+sed -i "s#%sysconfdir%#$(echo "$SYSCONFDIR" | sed 's:^/*::')#g" $PKG/install/doinst.sh
+
+cd $PKG
+/sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}

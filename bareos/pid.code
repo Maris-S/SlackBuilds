@@ -1,0 +1,6 @@
+    if [ -r /var/run/bareos-dir.pid ]; then
+        if $(! /sbin/pidof bareos-dir > /dev/null 2>&1 ) ; then
+            echo "Removing an old ${PIDDIR}${PRGNAM}.pid"
+            rm -f ${PIDDIR}${PRGNAM}.pid
+        fi
+    fi
