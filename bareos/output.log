@@ -12,7 +12,7 @@ Entering /tmp/SBo/bareos-Release-22.1.0/third-party
 -- Detecting CXX compile features - done
 -- Module support is disabled.
 -- Version: 9.1.0
--- Build type: Release
+-- Build type: 
 -- CXX_STANDARD: 11
 -- Performing Test has_std_11_flag
 -- Performing Test has_std_11_flag - Success
@@ -416,14 +416,14 @@ Entering /tmp/SBo/bareos-Release-22.1.0/core/src/droplet
 -- CMAKE_VERBOSE_MAKEFILE: FALSE
 -- CMAKE_SUPPRESS_REGENERATION: 
 -- CCACHE_FOUND: /usr/bin/ccache
--- CMAKE_BUILD_TYPE: Release
+-- CMAKE_BUILD_TYPE: 
 -- BUILD_SHARED_LIBS: 
 -- CMAKE_C_COMPILER:           /usr/bin/cc
--- CMAKE_C_FLAGS:              -O2 -fPIC -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-return-type -fmacro-prefix-map=/tmp/SBo/bareos-Release-22.1.0/core=. -Werror -Wall -Wextra
+-- CMAKE_C_FLAGS:              -O2 -fPIC -fmacro-prefix-map=/tmp/SBo/bareos-Release-22.1.0/core=. -Werror -Wall -Wextra
 -- CMAKE_C_COMPILER_ID:        GNU
 -- CMAKE_C_COMPILER_VERSION:   11.2.0
 -- CMAKE_CXX_COMPILER:         /usr/bin/c++
--- CMAKE_CXX_FLAGS:            -O2 -fPIC -Wno-unused-parameter -Wsuggest-override -Wformat -Werror=format-security -fmacro-prefix-map=/tmp/SBo/bareos-Release-22.1.0/core=. -Wno-invalid-offsetof -Werror -Wall -Wextra
+-- CMAKE_CXX_FLAGS:            -O2 -fPIC -Wsuggest-override -Wformat -Werror=format-security -fmacro-prefix-map=/tmp/SBo/bareos-Release-22.1.0/core=. -Wno-invalid-offsetof -Werror -Wall -Wextra
 -- CMAKE_CXX_COMPILER_ID:      GNU
 -- CMAKE_CXX_COMPILER_VERSION: 11.2.0
 -- CMAKE_AR: /usr/bin/ar
@@ -651,7 +651,7 @@ Entering /tmp/SBo/bareos-Release-22.1.0/core/src/fastlz
 Entering /tmp/SBo/bareos-Release-22.1.0/core/src/qt-tray-monitor
 -- Found QT5Widgets
  
-Configuration on 2023-07-31 21:36:58 : 
+Configuration on 2023-08-03 23:24:22 : 
  
    Host:                         Linux-5.15.117 -- slackware Slackware 15.0 
    Hostname:                     localhost 
@@ -676,8 +676,8 @@ Configuration on 2023-07-31 21:36:58 :
    Plugin directory:             /usr/lib/bareos/plugins 
    C Compiler:                   /usr/bin/cc 11.2.0 
    C++ Compiler:                 /usr/bin/c++ 11.2.0 
-   C Compiler flags:             -O2 -fPIC -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-return-type -fmacro-prefix-map=/tmp/SBo/bareos-Release-22.1.0/core=. -Werror -Wall -Wextra 
-   C++ Compiler flags:           -O2 -fPIC -Wno-unused-parameter -Wsuggest-override -Wformat -Werror=format-security -fmacro-prefix-map=/tmp/SBo/bareos-Release-22.1.0/core=. -Wno-invalid-offsetof -Werror -Wall -Wextra 
+   C Compiler flags:             -O2 -fPIC -fmacro-prefix-map=/tmp/SBo/bareos-Release-22.1.0/core=. -Werror -Wall -Wextra 
+   C++ Compiler flags:           -O2 -fPIC -Wsuggest-override -Wformat -Werror=format-security -fmacro-prefix-map=/tmp/SBo/bareos-Release-22.1.0/core=. -Wno-invalid-offsetof -Werror -Wall -Wextra 
    Linker flags:                     
    Libraries:                     
    Statically Linked Tools:       
@@ -1687,7 +1687,7 @@ Entering /tmp/SBo/bareos-Release-22.1.0/contrib/dir-plugins
 [100%] Building CXX object core/src/qt-tray-monitor/CMakeFiles/bareos-tray-monitor.dir/bareos-tray-monitor_autogen/EWIEGA46WW/qrc_main.cpp.o
 [100%] Linking CXX executable bareos-tray-monitor
 [100%] Built target bareos-tray-monitor
--- Install configuration: "Release"
+-- Install configuration: ""
 -- Installing: /tmp/SBo/package-bareos/var/log/bareos
 -- Installing: /tmp/SBo/package-bareos/var/lib/bareos
 -- Installing: /tmp/SBo/package-bareos/usr/sbin/bareos

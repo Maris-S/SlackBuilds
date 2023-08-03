@@ -150,8 +150,8 @@ find -L . \
 mkdir -p build
 cd build
   cmake \
-    -DCMAKE_C_FLAGS:STRING="$SLKCFLAGS -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-return-type" \
-    -DCMAKE_CXX_FLAGS:STRING="$SLKCFLAGS -Wno-unused-parameter" \
+    -DCMAKE_C_FLAGS:STRING="$SLKCFLAGS" \
+    -DCMAKE_CXX_FLAGS:STRING="$SLKCFLAGS" \
     -DCMAKE_INSTALL_PREFIX=$PREFIX \
     -DCMAKE_INSTALL_LIBDIR=$LIBDIR \
     -Dsbindir=$SBINDIR \
@@ -197,8 +197,7 @@ cd build
     -Dmon-sd-password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1` \
     -Dbasename="bareos" \
     -Dhostname="localhost" \
-    -DDEBUG_PREFIX_MAP:BOOL=OFF \
-    -DCMAKE_BUILD_TYPE=Release ..
+    -DDEBUG_PREFIX_MAP:BOOL=OFF ..
   cmake --build .
   DESTDIR=$PKG cmake --install . --strip
 cd ..
